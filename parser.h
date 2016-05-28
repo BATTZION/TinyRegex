@@ -11,6 +11,7 @@ struct AstNode {
 	AstNode(Type t, std::string s): type(t), sValue(s) {}
 	AstNode(Type t, int v, AstNode *node): type(t), value(v) { childs.push_back(node); }
 	AstNode *addChild(AstNode *child) { childs.push_back(child); }
+	~AstNode();
 	Type type;
 	int value;
 	std::string sValue;

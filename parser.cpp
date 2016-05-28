@@ -39,6 +39,12 @@ AstNode *getCatExpr(istringstream &stream);
 AstNode *getFactor(istringstream &stream);
 AstNode *getTerm(istringstream &stream);
 
+AstNode::~AstNode()
+{
+	for (auto &x : childs) 
+		delete x;
+}
+
 // 暂时不处理 \^ 和 \s
 AstNode *parser(const string &s)
 {
@@ -117,7 +123,7 @@ AstNode *getCatExpr(istringstream &stream)
 		delete result;
 		return child;
 	}
-	result = new AstNode(Op, '-', result);
+	result = new AstNode(Op, '@', result);
 	result->addChild(child);
 	while (true) {
 		AstNode *child = getFactor(stream);

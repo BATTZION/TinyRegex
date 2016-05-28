@@ -5,8 +5,7 @@
 
 using namespace std;
 
-const int nullChar = 256; // 表示空字符
-
+//int Status::count = 0;
 
 Nfa opChar(AstNode *node) 
 {
@@ -94,7 +93,7 @@ Nfa buildNfa(AstNode *root)
 	if (type == Op) {
 		int c = root->value;
 		switch (c) {
-			case '-': //串联符号
+			case '@': //串联符号
 				result = opAnd(root->childs);
 				break;
 			case '|':

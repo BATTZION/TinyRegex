@@ -2,6 +2,10 @@
 #define NFA_H
 
 #include <vector>
+#include "parser.h"
+
+const int nullChar = 256;   //空字符
+
 struct Status;
 struct Edge {
 	int symbol;
@@ -12,11 +16,13 @@ struct Edge {
 };
 
 struct Status {
+	//static int count;
+	//int id;
 	std::vector<Edge *> inEdges;
 	std::vector<Edge *> outEdges;
 	bool finalStatus;
-	Status() = default;
-	Status(bool fin):finalStatus(fin) {}
+	Status(bool fin = false):finalStatus(fin) { /*id = count++;*/ }
+	//~Status() { count--; }
 };
 
 struct Nfa {
@@ -25,5 +31,7 @@ struct Nfa {
 	Nfa() = default;
 	Nfa(Status *s, Status *e):start(s), end(e) {}
 };
+
 Nfa buildNfa(AstNode *root);
+int deleteNfa(Nfa &nfa);
 #endif

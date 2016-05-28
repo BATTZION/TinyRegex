@@ -14,7 +14,7 @@ void printNode(AstNode *node) {
 				cout << "( Op, range: " << node->sValue << " ) ";
 			else if (node->value == '{')
 				cout << "( Op, Repe: " << node->sValue << " ) ";
-			else if (node->value == '-')
+			else if (node->value == '@')
 				cout << "( Op, and ) ";
 			else
 				cout <<"( Op, " << char(node->value) << " )";
