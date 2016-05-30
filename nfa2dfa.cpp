@@ -108,6 +108,10 @@ bool simulateDfa(const string &s, Dfa &dfa)
 	char c;
 	int current_state = 0;
 	while (stream >> c) {
+		if (dfa.graph.find(make_pair(current_state, anyChar)) != end) {
+			current_state = dfa.graph[make_pair(current_state, anyChar)];
+			continue;
+		}
 		if (dfa.graph.find(make_pair(current_state, c)) == end)
 			return false;
 		current_state = dfa.graph[make_pair(current_state, int(c))];
@@ -117,7 +121,7 @@ bool simulateDfa(const string &s, Dfa &dfa)
 	return true;
 }
 
-Set delta(const Set & set, char c) 
+Set delta(const Set & set, int c) 
 {
 	Set result;
 	for (const auto &x : set) {
@@ -130,8 +134,9 @@ Set delta(const Set & set, char c)
 	return result;
 }
 
-Dfa nfa2dfa(const Nfa &nfa, const vector<int> &character)
+Dfa nfa2dfa(const Nfa &nfa, vector<int> &character)
 {
+	uniqueVector(character);
 	map<pair<int , int>, int> Map;
 
 	Set q0 = calClosure(nfa.start);

@@ -16,9 +16,9 @@ struct Dfa {
 	vector<int> endStatus;
 	Dfa(Map g, vector<int> es): graph(g), endStatus(es) {}
 };
-Dfa nfa2dfa(const Nfa &nfa, const vector<int> &character);
+Dfa nfa2dfa(const Nfa &nfa, vector<int> &character);
 bool simulateDfa(const std::string &str, Dfa &dfa);
-
+void uniqueVector(vector<int> &);
 
 #endif
 

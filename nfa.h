@@ -13,7 +13,8 @@ struct Edge {
 	Status *start = NULL;
 	Status *end = NULL;
 	Edge() = default;
-	Edge(int c, Status *s, Status *e): symbol(c), start(s), end(e) {}
+	Edge(int c, Status *s, Status *e, bool n = false): 
+		symbol(c), start(s), end(e) {}
 };
 
 struct Status {
@@ -32,7 +33,7 @@ struct Nfa {
 	Nfa() = default;
 	Nfa(Status *s, Status *e):start(s), end(e) {}
 };
-
+void uniqueVector(std::vector<int> &);
 Nfa buildNfa(AstNode *root);
 int deleteNfa(Nfa &nfa);
 void release(Nfa &nfa);

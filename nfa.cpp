@@ -13,15 +13,15 @@ using namespace std;
 
 vector<int> characters;
 
-Nfa opChar(AstNode *node) 
+Nfa opChar(int symbol) 
 {
-	int symbol = node->value;
 	Status *start = new Status(false);
 	Status *end = new Status(true);
 	Edge *edge = new Edge(symbol, start, end);
 	start->outEdges.push_back(edge);
 	end->inEdges.push_back(edge);
 	Nfa result(start, end);
+	characters.push_back(symbol);
 	return result;
 }
 
@@ -91,47 +91,70 @@ Nfa opOption(AstNode *root)
 Nfa opPlus(AstNode *root)
 {
 	Nfa nfa_temp = buildNfa(root);
-	Nfa nfa_temp2 = buildNfa(root);
+	Nfa nfa_temp2 = opRepetive(root);
 	connectNfa(nfa_temp, nfa_temp2);
-	return Nfa(nfa_temp.start, nfa_temp2.end);
+	Nfa result(nfa_temp.start, nfa_temp2.end);
+	return result;
 }
 
-Nfa opRange(AstNode *root)
+//删除重复元素
+void uniqueVector(vector<int> &set)
 {
-	vector<AstNode *> childs;
-	string range = root->sValue;
-	if (range[0] != '^') {
-		if (range[1] == '-') {
-			cout << range[0] << range[2] << endl;
-			for (int i = range[0]; i <= range[2]; i++) {
-				AstNode *temp = new AstNode(Char, i);
-				childs.push_back(temp);
-			}
+	auto x = set.begin();
+	map<int, int> Maps;
+	while (x != set.end()) {
+		if (Maps.find(*x) != Maps.end()) {
+			x = set.erase(x);
 		}
 		else {
-			for (auto x : range) {
-				AstNode *temp = new AstNode(Char, x);
-				childs.push_back(temp);
+			Maps[*x] = 1;
+			x++;
+		}
+	}
+}
+vector<int> getSet(const string &str) 
+{
+	vector<int> result;
+	if (str[0] != '^') {
+		int l = str.size(), i = 0;
+		while (i < l) {
+			if (i + 1 < l && str[i] != '-' && str[i + 1] != '-') {
+				result.push_back(str[i++]);
+				continue;
+			}
+			if (i + 1 >= l) {
+				result.push_back(str[i]);
+				break;
+			}
+			if (str[i+1] == '-') {
+				for (int j = str[i]; j <= str[i+2]; j++) {
+					result.push_back(j);
+				}
+				i += 3;
 			}
 		}
 	}
 	else {
-		if (range[2] == '-') {
-			for (int i = 1; i < 255; i++) {
-				if (range[1] <= i && i <= range[3])
-					continue;
-				AstNode *temp = new AstNode(Char, i);
-				childs.push_back(temp);
-			} 
+		string s;
+		for (int i = 1; i < str.size(); i++)
+			s += str[i];
+		vector<int> temp = getSet(s);
+		for (int i = 1; i < 255; i++) {
+			if (find(temp.begin(), temp.end(), i) == temp.end())
+				result.push_back(i);
 		}
-		else {
-			for (int i = 1; i < 255; i++) {
-				if (range.find(i) != string::npos)
-					continue;
-				AstNode *temp = new AstNode(Char, i);
-				childs.push_back(temp);
-			}
-		}
+	}
+	uniqueVector(result);
+	return result;
+} 
+Nfa opRange(const string &range)
+{
+	vector<AstNode *> childs;
+	vector<int> charSet = getSet(range);
+	for (auto x : charSet) {
+		AstNode *temp = new AstNode(Char, x);
+		childs.push_back(temp);
+		characters.push_back(x);
 	}
 	return opOr(childs);
 }
@@ -171,13 +194,24 @@ Nfa opRepetiveRange(AstNode *root)
 	}
 }
 
+Nfa opEscape(AstNode *root)
+{
+	int c = root->value;
+	switch (c) {
+		case 'n':
+			return opChar('\n');
+		default:
+			return opChar(c);
+			break;
+	}
+}
+
 Nfa buildNfa(AstNode *root) 
 {
 	Nfa result;
 	Type type = root->type;
 	if (type == Char) {
-		characters.push_back(root->value);
-		result = opChar(root);
+		result = opChar(root->value);
 		return result;
 	}
 	if (type == Op) {
@@ -196,16 +230,19 @@ Nfa buildNfa(AstNode *root)
 				result = opOption(root->childs[0]);
 				break;
 			case '.':
-				result = opChar(root);
+				result = opChar(anyChar);
 				break;
 			case '+':
 				result = opPlus(root->childs[0]);
 				break;
 			case '[':
-				result = opRange(root);
+				result = opRange(root->sValue);
 				break;
 			case '{':
 				result = opRepetiveRange(root);
+				break;
+			case '\\':
+				result = opEscape(root->childs[0]);
 				break;
 		}
 	}
