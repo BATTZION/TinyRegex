@@ -20,6 +20,7 @@ int main(int argc, char **argv)
 				cout << "Don't Match!" << endl;
 		}
 		delete root;
+		characters.clear();
 		release(nfa);
 	} catch (runtime_error err) {
 		cout << err.what() << endl;
