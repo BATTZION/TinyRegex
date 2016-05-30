@@ -112,6 +112,7 @@ void uniqueVector(vector<int> &set)
 		}
 	}
 }
+
 vector<int> getSet(const string &str) 
 {
 	vector<int> result;
@@ -147,6 +148,7 @@ vector<int> getSet(const string &str)
 	uniqueVector(result);
 	return result;
 } 
+
 Nfa opRange(const string &range)
 {
 	vector<AstNode *> childs;
@@ -159,40 +161,58 @@ Nfa opRange(const string &range)
 	return opOr(childs);
 }
 
-Nfa opRepetiveRange(AstNode *root)
+void getRange(const string &str, int &begin, int &end)
 {
-	string range = root->sValue;
-	int begin = 0, end = 0, i = 0;
-	vector<AstNode *> childs;
-	for (i = 0; range[i] != ':'; i++) 
-		begin += range[i] - '0';
-	if (i == (range.size() - 1))
-		end = begin * 2;
-	else if (range[++i] == '$')
-		end = -1;
-	else  
-		for (; i < range.size(); i++)
-			end += range[i] - '0';
-	
-	if (end != -1) {
-		for (int i = 0; i < begin; i++) {
-			childs.push_back(root->childs[0]);
-		}
-		for (int i = begin; i <= end; i++) {
-
-			childs.push_back(root->childs[0]);
-		}
-		return opAnd(childs);
+	begin = 0;
+	end = 0;
+	int l = str.size(), i = 0;
+	while (str[i] != ':') {
+		begin += str[i++] - '0';
 	}
-	else {
-		for (int i = 0; i < begin; i++) 
-			childs.push_back(root->childs[0]);
-		Nfa nfa_temp = opAnd(childs);
-		Nfa nfa_temp2 = opRepetive(root->childs[0]);
-		connectNfa(nfa_temp, nfa_temp2);
-		return Nfa(nfa_temp.start, nfa_temp2.end);
+	if (i + 1 == l) {
+		end = begin;
+		return;
+	}
+	if (str[++i] == '$') {
+		end = -1;
+		return;
+	}
+	while (i < l) {
+		end += str[i++] - '0';
 	}
 }
+
+Nfa opRepetiveRange(AstNode *root)
+{
+	vector<AstNode*> childs;
+	string range = root->sValue;
+	int begin = 0, end = 0;
+	getRange(range, begin, end);
+	
+	if (begin == end) {
+		for (int i = 0; i < begin; i++) 
+			childs.push_back(root->childs[0]);
+		return opAnd(childs);
+	}
+
+    for (int i = 0; i < begin; i++)
+		childs.push_back(root->childs[0]);
+	Nfa temp = opAnd(childs);
+
+	if (end != -1) {
+		for (int i = begin; i < end; i++) {
+			Nfa temp1 = opOption(root->childs[0]);
+			connectNfa(temp, temp1);
+			temp.end = temp1.end;
+		}
+	}
+	else {
+		Nfa temp1 = opRepetive(root->childs[0]);
+		connectNfa(temp, temp1);
+		temp.end = temp1.end;
+	}
+	return temp;
+}	
 
 Nfa opEscape(AstNode *root)
 {
