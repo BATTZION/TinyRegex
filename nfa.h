@@ -5,6 +5,7 @@
 #include "parser.h"
 
 const int nullChar = 256;   //空字符
+const int anyChar =  257;    //任何字符
 
 struct Status;
 struct Edge {
@@ -34,4 +35,5 @@ struct Nfa {
 
 Nfa buildNfa(AstNode *root);
 int deleteNfa(Nfa &nfa);
+void release(Nfa &nfa);
 #endif

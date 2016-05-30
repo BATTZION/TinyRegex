@@ -3,10 +3,22 @@
 
 #include "nfa.h"
 #include <vector>
+#include <map>
+
+using std::map;
 using std::vector;
-std::vector<Status *> calClosure(Status *status);
-void nfa2dfa(const Nfa &nfa, const vector<char> &character);
+using std::pair;
+
+vector<Status *> calClosure(Status *status);
+struct Dfa {
+	typedef map<pair<int, int>, int> Map;
+	Map graph;
+	vector<int> endStatus;
+	Dfa(Map g, vector<int> es): graph(g), endStatus(es) {}
+};
+Dfa nfa2dfa(const Nfa &nfa, const vector<int> &character);
+bool simulateDfa(const std::string &str, Dfa &dfa);
+
 
 #endif
-
 

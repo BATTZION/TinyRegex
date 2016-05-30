@@ -1,5 +1,6 @@
 #include "nfa2dfa.h"
 #include <iostream>
+#include <sstream>
 #include <queue>
 #include <algorithm>
 #include <map>
@@ -81,7 +82,6 @@ int find_set(const vector<Set> &result, const Set &a)
 	return -1;
 }
 
-
 bool isEndStatus(const Set &set) 
 {
 	for (const auto &x : set) {
@@ -101,26 +101,20 @@ int find(const vector<char> &line, char c)
 	return -1;
 }
 
-void simulate(const vector<vector<char> > &Dfa, const vector<int> &endStatus)
+bool simulateDfa(const string &s, Dfa &dfa)
 {
-	cout << "input string to match" << endl;
-	string s;
-	while (cin >> s) {
-		int stage = 0;
-		int len = s.size();
-		for (int i = 0; i < len; i++) {
-			int next_stage = find(Dfa[stage], s[i]);
-			if (next_stage == -1) {
-				cout << "Don't Match!" << endl;
-				break;
-			}
-			stage = next_stage;
-		}
-		if (find(endStatus.begin(), endStatus.end(), stage) != endStatus.end())
-			cout << "Match!" << endl;
-		else
-			cout << "Don't Match" << endl;
+	auto end = dfa.graph.end();
+	istringstream stream(s);
+	char c;
+	int current_state = 0;
+	while (stream >> c) {
+		if (dfa.graph.find(make_pair(current_state, c)) == end)
+			return false;
+		current_state = dfa.graph[make_pair(current_state, int(c))];
 	}
+	if (find(dfa.endStatus.begin(), dfa.endStatus.end(), current_state) == dfa.endStatus.end())
+		return false;
+	return true;
 }
 
 Set delta(const Set & set, char c) 
@@ -136,9 +130,9 @@ Set delta(const Set & set, char c)
 	return result;
 }
 
-void nfa2dfa(const Nfa &nfa, const vector<char> &character)
+Dfa nfa2dfa(const Nfa &nfa, const vector<int> &character)
 {
-	map<pair<int , int>, char> Map;
+	map<pair<int , int>, int> Map;
 
 	Set q0 = calClosure(nfa.start);
 
@@ -150,6 +144,7 @@ void nfa2dfa(const Nfa &nfa, const vector<char> &character)
 	
 	int src_index = -1;
 	vector<int> endStatus;
+	//构建DFA表
 	while (!workList.empty()) {
 		++src_index;
 		Set q = workList.front();
@@ -157,29 +152,19 @@ void nfa2dfa(const Nfa &nfa, const vector<char> &character)
 			endStatus.push_back(src_index);
 		for (auto x : character) {
 			Set t = calClosureFS(delta(q, x));
+			if (t.size() == 0)
+				continue;
 			int des_index = find_set(result, t);
 			if (des_index == -1) {
 				des_index = result.size();
 				result.push_back(t);
 				workList.push(t);
 			}
-			Map[make_pair(src_index, des_index)] = x;
+			Map[make_pair(src_index, x)] = des_index;
 		}
 		workList.pop();
 	}
-
-	int num_status = result.size();
-	vector<vector<char> >Dfa(num_status, vector<char>(num_status));
-	auto x = Map.begin();
-	while (x != Map.end()) {
-		int line = x->first.first;
-		int raw = x->first.second;
-		char value = x->second;
-		Dfa[line][raw] = value;
-		x++;
-	}
-	simulate(Dfa, endStatus);
+	return Dfa(Map, endStatus);
 }
-
 
 

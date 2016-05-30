@@ -1,18 +1,28 @@
-#include "nfa2dfa.h"
 #include "parser.h"
+#include "nfa.h"
+#include "nfa2dfa.h"
 #include <iostream>
 #include <vector>
-#include <string>
-
-
 using namespace std;
-
-int main()
+extern vector<int> characters;
+int main(int argc, char **argv)
 {
-	string s = "a(b|c)*";
-	AstNode *tree = parser(s);
-	Nfa nfa = buildNfa(tree);
-	vector<Status *> result =  calClosure(nfa.start->outEdges[0]->end->outEdges[0]->end->outEdges[0]->end);
-	cout << result.size() << endl;
-	return 0;
+	string s, str;
+	getline(cin, s);
+	try{
+		AstNode *root = parser(s);
+		Nfa nfa = buildNfa(root);
+		Dfa dfa = nfa2dfa(nfa, characters);
+		while (getline(cin, str)) {
+			if (simulateDfa(str, dfa)) 
+				cout << "Match!" << endl;
+			else 
+				cout << "Don't Match!" << endl;
+		}
+		delete root;
+		release(nfa);
+	} catch (runtime_error err) {
+		cout << err.what() << endl;
+	}	
+
 }
